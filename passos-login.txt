@@ -1,0 +1,205 @@
+criar tabela no mysql
+
+adonislogin utf8_general_cli
+
+adonis new app
+
+npm install mysql
+
+
+
+
+trocar dados de .env
+
+
+
+HOST=127.0.0.1
+PORT=3333
+NODE_ENV=development
+APP_URL=http://${HOST}:${PORT}
+CACHE_VIEWS=false
+APP_KEY=
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3312
+DB_USER=root
+DB_PASSWORD=
+DB_DATABASE=adonislogin
+SESSION_DRIVER=cookie
+HASH_DRIVER=bcrypt
+
+
+/////////////
+
+
+trocar dados de app config database.js
+
+
+  mysql: {
+    client: 'mysql',
+    connection: {
+      host: Env.get('DB_HOST', 'localhost'),
+      port: Env.get('DB_PORT', ''),
+      user: Env.get('DB_USER', 'root'),
+      password: Env.get('DB_PASSWORD', ''),
+      database: Env.get('DB_DATABASE', 'nome-base')
+    }
+  },
+
+
+
+///////////////
+
+
+Rodar adonis migration:run
+
+
+///////////////
+
+DESABILITAR SHILD mudar de TRUE para FALSE
+
+  csrf: {
+    enable: false,
+    methods: ['POST', 'PUT', 'DELETE'],
+    filterUris: [],
+    cookieOptions: {
+      httpOnly: false,
+      sameSite: true,
+      path: '/',
+      maxAge: 7200
+    }
+  }
+}
+
+
+/////////////////
+
+
+adonis make:controller User
+
+for HTTP requests
+
+
+//////////////////
+
+
+Editar o UserController.js
+
+
+Criar metodos Login e register
+
+
+
+Login
+
+
+'use strict'
+
+const User = use('App/Models/User')
+
+class UserController {
+   async login({request, response, auth}){
+     const { email , password } = request.only(['email','password']) 
+
+     const token = await auth.attempt(email, password)
+     return response.json(token)
+   }
+  
+   async register({request, response}){
+     const {first_name, last_name, email, password} = request.only([
+       'first_name','last_name',
+       'email','password' 
+    ])
+
+    await User.create({
+      first_name,
+      last_name,
+      email,
+      password
+    })
+
+    return response.send({message: "Usuario cadastrado!!"})    
+   }
+
+   async show({params, response}){
+    const user = await User.find(params.id)
+    const res = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email
+    }
+    return response.json(res)
+   }
+}
+
+module.exports = UserController
+
+////////////
+
+Route
+
+
+/** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
+const Route = use('Route')
+
+Route.on('/').render('welcome')
+
+Route.group(()=>{
+  Route.post('login','UserController.login')
+  Route.post('register','UserController.register')
+  Route.get('getuser/:id','UserController.show')  
+}).prefix('users')
+
+
+
+/////////////
+
+
+entrar em auth dentro de config e trocar
+
+
+|  authenticator: 'session',
+  */
+  authenticator: 'jwt',
+
+  /*
+
+
+
+/////////////
+
+
+Rodar adonis serve --dev para testar
+
+
+
+postman / insomnia
+
+
+localhost:3333/users/register
+
+
+Post / localhost:3333/users/register
+
+
+Body
+
+x.www-form-urlencoded
+
+key
+
+
+first_name - primeiro-nome
+
+last1_name - ultimo-nome
+
+email - johnjohn@hotmail.com
+
+password - 123456
+
+
+//////////////
+
+
+
+
